@@ -65,7 +65,8 @@ def retrieveDomainInfo(domain: str):
 @click.option("--domain", "-d", help="Public information about the given domain will be looked up and retrieved.")
 @click.option("--domain-list", "-dl", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(exists=True,file_okay=True, dir_okay=False, readable=True))
 @click.option("--export-json", type=click.Path(dir_okay=False, path_type=Path), help="All retrieved information will be saved in de passed file. Results are saved in .json format.")
-def terminal(domain, domain_list, export_json):
+@click.option("--verbose", "-v", is_flag=True, help="The terminal outputs the result, even when the output is exported.")
+def terminal(domain, domain_list, export_json, verbose):
     """
     Function interacts with the terminal.
     """
@@ -117,7 +118,8 @@ def terminal(domain, domain_list, export_json):
         with open(export_json, "w") as file:
             json.dump(data, file)
             click.echo(f"Written succesfully to {export_json}")
-    else:
+    
+    if verbose or not export_json:
         pprint(data)
     
 
