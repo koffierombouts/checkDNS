@@ -4,3 +4,4 @@ examples
 *.db
 *.json
 *.txt
+!requirements.txt
