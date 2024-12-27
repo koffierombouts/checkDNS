@@ -1,0 +1,6 @@
+virtualcheckDNS/
+__pycache__
+examples
+*.db
+*.json
+*.txt
