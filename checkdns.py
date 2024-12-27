@@ -63,7 +63,7 @@ def retrieveDomainInfo(domain: str):
 
 @click.command()
 @click.option("--domain", "-d", help="Public information about the given domain will be looked up and retrieved.")
-@click.option("--domain-list", "-dl", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(file_okay=True, dir_okay=False, readable=True))
+@click.option("--domain-list", "-dl", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(exists=True,file_okay=True, dir_okay=False, readable=True))
 @click.option("--export-json", type=click.Path(dir_okay=False, path_type=Path), help="All retrieved information will be saved in de passed file. Results are saved in .json format.")
 def terminal(domain, domain_list, export_json):
     """
@@ -71,23 +71,30 @@ def terminal(domain, domain_list, export_json):
     """
     data = {}
 
+    if domain and domain_list:
+        raise click.UsageError("You cannot use --domain and --domain-list at the same time.")
+
+    if not export_json and domain_list:
+        if not click.confirm("You didnt specify a file to export to, do you wish to continue?"):
+            export_json = Path(click.prompt("Specify the filepath", type=Path))
+    
     if export_json:
         if not export_json.suffix == ".json":
             raise click.UsageError("The results file must be .json")
         else:
-            with open(export_json, "r") as file:
-                content = file.read()
-                
-                if content != "":
-                    click.confirm(f"{export_json} contains data. Do you wish to overwrite this and continue?", abort=True)
-    
-    if domain and domain_list:
-        raise click.UsageError("You cannot use --domain and --domain-list at the same time.")
-    elif domain:
+            try:
+                with open(export_json, "r") as file:
+                    content = file.read()
+                    
+                    if content != "":
+                        click.confirm(f"{export_json} contains data. Do you wish to overwrite this and continue?", abort=True)
+            except FileNotFoundError:
+                pass
+
+    if domain:
         domain_entry = retrieveDomainInfo(domain)
         if domain_entry:
             data.update(domain_entry)
-            pprint(data)
         else:
             click.echo(domain+" is not a valid domain")
     elif domain_list:
