@@ -8,25 +8,38 @@ from rich.pretty import pprint
 from pathlib import Path
 
 def dns_resolver(domain: str, type: str):
+    """
+    Function resolves information like MX or SPF records
+    """
     return dns.resolver.resolve(domain, type)
 
+def toStringDate(whois_entry, dates_string: str):
+    """
+    Function converts date objects in entry to strings
+    """
+    if dates_string in whois_entry:
+        old_dates = whois_entry[dates_string]
+        new_dates = []
+
+        if type(old_dates) == list:
+            for date in old_dates:
+                new_dates.append(str(date))
+            whois_entry[dates_string] = new_dates
+        else:
+            whois_entry[dates_string] = str(old_dates)
+    
+    return whois_entry
+
 def retrieveDomainInfo(domain: str):
+    """
+    Function retrieves following information:
+    - whois entry
+    - host_ips
+    - mx_record
+    - txt_record
+    """
     domain_entry = {}
     try:
-        def toStringDate(whois_entry, dates_string: str):
-            if dates_string in whois_entry:
-                old_dates = whois_entry[dates_string]
-                new_dates = []
-
-                if type(old_dates) == list:
-                    for date in old_dates:
-                        new_dates.append(str(date))
-                    whois_entry[dates_string] = new_dates
-                else:
-                    whois_entry[dates_string] = str(old_dates)
-            
-            return whois_entry
-
         whois_entry = toStringDate(whois.whois(domain), "creation_date")
         if whois_entry["domain_name"] == None:
             return None
@@ -53,6 +66,9 @@ def retrieveDomainInfo(domain: str):
 @click.option("--domain-list", "-dl", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(file_okay=True, dir_okay=False, readable=True))
 @click.option("--export-json", type=click.Path(dir_okay=False, path_type=Path), help="All retrieved information will be saved in de passed file. Results are saved in .json format.")
 def terminal(domain, domain_list, export_json):
+    """
+    Function interacts with the terminal.
+    """
     data = {}
 
     if export_json:
@@ -94,6 +110,8 @@ def terminal(domain, domain_list, export_json):
         with open(export_json, "w") as file:
             json.dump(data, file)
             click.echo(f"Written succesfully to {export_json}")
+    else:
+        pprint(data)
     
 
 if __name__ == "__main__":
