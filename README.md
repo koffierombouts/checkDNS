@@ -27,7 +27,7 @@ The terminal then outputs all retrieved information about this domain.
 A more advanced example:
 
 ```
-python3 checkdns.py --domain-list test.txt --export-json test.json
+python3 checkdns.py --domain-list example.txt --export-json example.json
 ```
 
 In this example `--domain-list` is used to specify the file to read the input domainnames from. This input file should be in the following format.
