@@ -1,0 +1,10 @@
+click==8.1.8
+dnspython==2.7.0
+markdown-it-py==3.0.0
+mdurl==0.1.2
+pygments==2.18.0
+python-dateutil==2.9.0.post0
+python-whois==0.9.5
+rich==13.9.4
+six==1.17.0
+typing-extensions==4.12.2
