@@ -5,6 +5,7 @@ import dns.resolver
 import json
 
 from rich.pretty import pprint
+from pathlib import Path
 
 def dns_resolver(domain: str, type: str):
     return dns.resolver.resolve(domain, type)
@@ -43,28 +44,39 @@ def retrieveDomainInfo(domain: str):
     except dns.resolver.NoAnswer as e:
         pass
     except Exception as e:
-        print(e)
+        click.echo(e)
 
     return {domain: domain_entry}
 
 @click.command()
 @click.option("--domain", "-d", help="Public information about the given domain will be looked up and retrieved.")
-@click.option("--read-file", "-r", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(exists=True, dir_okay=False, readable=True))
-@click.option("--write-file", "-w", help="All retrieved information will be saved in de passed file. Results are saved in .json format. If no file is given, it will save to results.json", type=click.Path(dir_okay=False), default="results.json")
-def terminal(domain, read_file, write_file):
+@click.option("--domain-list", "-dl", help="Public information about all the domains in the file will be looked up and retrieved.", type=click.Path(file_okay=True, dir_okay=False, readable=True))
+@click.option("--export-json", type=click.Path(dir_okay=False, path_type=Path), help="All retrieved information will be saved in de passed file. Results are saved in .json format.")
+def terminal(domain, domain_list, export_json):
     data = {}
-    if domain and read_file:
-        raise click.UsageError("You cannot use --domain and --read_file at the same time.")
+
+    if export_json:
+        if not export_json.suffix == ".json":
+            raise click.UsageError("The results file must be .json")
+        else:
+            with open(export_json, "r") as file:
+                content = file.read()
+                
+                if content != "":
+                    click.confirm(f"{export_json} contains data. Do you wish to overwrite this and continue?", abort=True)
+    
+    if domain and domain_list:
+        raise click.UsageError("You cannot use --domain and --domain-list at the same time.")
     elif domain:
         domain_entry = retrieveDomainInfo(domain)
         if domain_entry:
             data.update(domain_entry)
             pprint(data)
         else:
-            print(domain+" is not a valid domain")
-    elif read_file:
+            click.echo(domain+" is not a valid domain")
+    elif domain_list:
         domains = []
-        with open(read_file, "r") as file:
+        with open(domain_list, "r") as file:
             for line in file:
                 domains.append(line.strip())
 
@@ -74,11 +86,15 @@ def terminal(domain, read_file, write_file):
 
             if domain_entry:
                 data.update(domain_entry)
-                print(f"[{index}/{domains_amount}]: {domain} retrieved ...")
+                click.echo(f"[{index}/{domains_amount}]: {domain} retrieved ...")
             else:
-                print(f"[{index}/{domains_amount}]: {domain}  is an invalid domain ...")
+                click.echo(f"[{index}/{domains_amount}]: {domain}  is an invalid domain ...")
     
-        pprint(data)
+    if export_json:
+        with open(export_json, "w") as file:
+            json.dump(data, file)
+            click.echo(f"Written succesfully to {export_json}")
+    
 
 if __name__ == "__main__":
     terminal()
